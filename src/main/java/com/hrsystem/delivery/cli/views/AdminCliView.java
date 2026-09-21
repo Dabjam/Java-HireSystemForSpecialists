@@ -46,8 +46,9 @@ public class AdminCliView {
             out.println("[4] Журнал логов парсинга");
             out.println("[5] Модерация каталога вакансий");
             out.println("[6] Блокировка учётных записей");
+            out.println("[7] Нативная SQL-аналитика (ORM demo)");
             out.println("[0] Выход в главное меню (Logout)");
-            int choice = input.readIntInRange("Выберите команду > ", 0, 6);
+            int choice = input.readIntInRange("Выберите команду > ", 0, 7);
             try {
                 switch (choice) {
                     case 1 -> runSites(input, out);
@@ -56,6 +57,7 @@ public class AdminCliView {
                     case 4 -> showLogs(out);
                     case 5 -> moderateVacancies(input, out);
                     case 6 -> moderateUsers(input, out);
+                    case 7 -> showNativeStats(input, out);
                     case 0 -> inMenu = false;
                     default -> {
                     }
@@ -181,5 +183,18 @@ public class AdminCliView {
         long id = input.readLong("ID пользователя > ");
         UserEntity updated = moderationService.setUserActive(id, action == 2);
         out.println("[OK] Пользователь " + updated.getEmail() + " активен=" + updated.isActive());
+    }
+
+    private void showNativeStats(InputValidator input, PrintStream out) {
+        out.println();
+        out.println("=== НАТИВНАЯ SQL-АНАЛИТИКА ===");
+        out.println("(Запросы выполняются напрямую через nativeQuery = true)");
+        out.println("------------------------------------------------------------");
+        List<String> lines = moderationService.getNativeStats();
+        for (String line : lines) {
+            out.println(line);
+        }
+        out.println("------------------------------------------------------------");
+        input.readOptionalString("Enter для продолжения > ");
     }
 }

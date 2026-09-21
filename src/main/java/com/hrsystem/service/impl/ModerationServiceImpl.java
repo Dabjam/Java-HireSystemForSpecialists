@@ -9,6 +9,7 @@ import com.hrsystem.domain.enums.VacancySource;
 import com.hrsystem.domain.enums.VacancyStatus;
 import com.hrsystem.dto.response.DashboardStatsDto;
 import com.hrsystem.exception.EntityNotFoundException;
+import com.hrsystem.repository.ApplicationRepository;
 import com.hrsystem.repository.ParsingLogRepository;
 import com.hrsystem.repository.ParsingSourceRepository;
 import com.hrsystem.repository.UserRepository;
@@ -19,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -29,15 +31,18 @@ public class ModerationServiceImpl implements ModerationService {
 
     private final VacancyRepository vacancyRepository;
     private final UserRepository userRepository;
+    private final ApplicationRepository applicationRepository;
     private final ParsingSourceRepository parsingSourceRepository;
     private final ParsingLogRepository parsingLogRepository;
 
     public ModerationServiceImpl(VacancyRepository vacancyRepository,
                                  UserRepository userRepository,
+                                 ApplicationRepository applicationRepository,
                                  ParsingSourceRepository parsingSourceRepository,
                                  ParsingLogRepository parsingLogRepository) {
         this.vacancyRepository = vacancyRepository;
         this.userRepository = userRepository;
+        this.applicationRepository = applicationRepository;
         this.parsingSourceRepository = parsingSourceRepository;
         this.parsingLogRepository = parsingLogRepository;
     }
@@ -121,4 +126,45 @@ public class ModerationServiceImpl implements ModerationService {
         source.setActive(!source.isActive());
         return parsingSourceRepository.save(source);
     }
+
+    /**
+     * Нативная SQL-аналитика: агрегирует данные через нативные запросы из трёх репозиториев.
+     * Демонстрирует использование nativeQuery = true в Spring Data JPA.
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<String> getNativeStats() {
+        List<String> lines = new ArrayList<>();
+
+        // --- Native SQL #1: UserRepository — статистика пользователей по ролям ---
+        lines.add("  [Native SQL] Пользователи по ролям (users GROUP BY role):");
+        List<Object[]> userRoles = userRepository.countUsersByRole();
+        for (Object[] row : userRoles) {
+            lines.add("    • " + row[0] + " → " + row[1] + " чел.");
+        }
+
+        // --- Native SQL #2: VacancyRepository — средняя зарплата по статусу вакансий ---
+        lines.add("  [Native SQL] Средняя зарплата по статусу вакансий:");
+        List<Object[]> salaryStats = vacancyRepository.getSalaryStatsByStatus();
+        for (Object[] row : salaryStats) {
+            lines.add("    • " + row[0] + ": avg_min=" + row[1] + ", avg_max=" + row[2] + ", кол-во=" + row[3]);
+        }
+
+        // --- Native SQL #3: VacancyRepository — топ-3 работодателя по вакансиям ---
+        lines.add("  [Native SQL] Топ-3 работодателя по активным вакансиям:");
+        List<Object[]> topEmployers = vacancyRepository.getTopEmployersByVacancyCount(3);
+        for (Object[] row : topEmployers) {
+            lines.add("    • " + row[0] + " → " + row[1] + " вак.");
+        }
+
+        // --- Native SQL #4: ApplicationRepository — количество откликов по статусам ---
+        lines.add("  [Native SQL] Отклики по статусам (applications GROUP BY status):");
+        List<Object[]> appStats = applicationRepository.countApplicationsByStatus();
+        for (Object[] row : appStats) {
+            lines.add("    • " + row[0] + " → " + row[1] + " шт.");
+        }
+
+        return lines;
+    }
 }
+

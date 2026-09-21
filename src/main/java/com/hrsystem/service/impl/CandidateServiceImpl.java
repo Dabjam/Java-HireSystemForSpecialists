@@ -76,13 +76,19 @@ public class CandidateServiceImpl implements CandidateService {
                 ? filter.getSalaryMin()
                 : null;
 
-        Page<VacancyEntity> entityPage = vacancyRepository.findWithFilters(
-                VacancyStatus.ACTIVE,
-                sourceParam,
-                minSalaryParam,
-                keywordParam,
-                pageable
-        );
+        Page<VacancyEntity> entityPage;
+        if (sourceParam == null && keywordParam == null && minSalaryParam == null) {
+            entityPage = vacancyRepository.findByStatus(VacancyStatus.ACTIVE, pageable);
+        } else {
+            String searchPattern = (keywordParam != null) ? "%" + keywordParam.toLowerCase() + "%" : null;
+            entityPage = vacancyRepository.findWithFilters(
+                    VacancyStatus.ACTIVE,
+                    sourceParam,
+                    minSalaryParam,
+                    searchPattern,
+                    pageable
+            );
+        }
 
         return entityPage.map(this::mapToSummaryDto);
     }

@@ -15,6 +15,10 @@ import java.util.Optional;
 @Repository
 public interface ApplicationRepository extends JpaRepository<ApplicationEntity, Long> {
 
+    // ---------------------------------------------------------------
+    // JPQL-запросы (ORM-уровень)
+    // ---------------------------------------------------------------
+
     @EntityGraph(attributePaths = {"candidate", "vacancy"})
     List<ApplicationEntity> findByVacancyIdOrderByCreatedAtDesc(Long vacancyId);
 
@@ -46,4 +50,45 @@ public interface ApplicationRepository extends JpaRepository<ApplicationEntity, 
     );
 
     long countByVacancyId(Long vacancyId);
+
+    // ---------------------------------------------------------------
+    // Нативные SQL-запросы
+    // ---------------------------------------------------------------
+
+    /**
+     * Нативный SQL: количество откликов по каждому статусу.
+     * Используется для дашборда администратора.
+     *
+     * @return массив объектов [status, count]
+     */
+    @Query(value = """
+            SELECT
+                status,
+                COUNT(*) AS cnt
+            FROM applications
+            GROUP BY status
+            ORDER BY cnt DESC
+            """, nativeQuery = true)
+    List<Object[]> countApplicationsByStatus();
+
+    /**
+     * Нативный SQL: самые популярные вакансии по количеству откликов.
+     *
+     * @param limit количество записей
+     * @return массив объектов [vacancy_id, title, company_name, application_count]
+     */
+    @Query(value = """
+            SELECT
+                v.id          AS vacancy_id,
+                v.title       AS title,
+                v.company_name AS company_name,
+                COUNT(a.id)   AS application_count
+            FROM applications a
+            JOIN vacancies v ON a.vacancy_id = v.id
+            GROUP BY v.id, v.title, v.company_name
+            ORDER BY application_count DESC
+            LIMIT :limit
+            """, nativeQuery = true)
+    List<Object[]> getTopVacanciesByApplicationCount(@Param("limit") int limit);
 }
+

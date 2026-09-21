@@ -6,6 +6,7 @@ import com.hrsystem.domain.entity.VacancyEntity;
 import com.hrsystem.domain.enums.UserRole;
 import com.hrsystem.domain.enums.VacancySource;
 import com.hrsystem.domain.enums.VacancyStatus;
+import com.hrsystem.repository.ApplicationRepository;
 import com.hrsystem.repository.ParsingLogRepository;
 import com.hrsystem.repository.ParsingSourceRepository;
 import com.hrsystem.repository.UserRepository;
@@ -33,6 +34,8 @@ class ModerationServiceImplTest {
     @Mock
     private UserRepository userRepository;
     @Mock
+    private ApplicationRepository applicationRepository;
+    @Mock
     private ParsingSourceRepository parsingSourceRepository;
     @Mock
     private ParsingLogRepository parsingLogRepository;
@@ -42,8 +45,9 @@ class ModerationServiceImplTest {
     @BeforeEach
     void setUp() {
         service = new ModerationServiceImpl(
-                vacancyRepository, userRepository, parsingSourceRepository, parsingLogRepository);
+                vacancyRepository, userRepository, applicationRepository, parsingSourceRepository, parsingLogRepository);
     }
+
 
     @Test
     void hidesVacancyFromCatalogByArchiving() {

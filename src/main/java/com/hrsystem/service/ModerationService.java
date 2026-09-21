@@ -26,4 +26,10 @@ public interface ModerationService {
     ParsingSourceEntity addSource(String name, VacancySource sourceType, String baseUrl);
 
     ParsingSourceEntity toggleSource(Long sourceId);
+
+    /**
+     * Нативная аналитика: вызывает нативные SQL-запросы из репозиториев.
+     * Возвращает строки для отображения в дашборде администратора.
+     */
+    List<String> getNativeStats();
 }

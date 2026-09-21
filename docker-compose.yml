@@ -1,13 +1,13 @@
 services:
   postgres:
-    image: postgres:15-alpine
+    image: postgres:16-alpine
     container_name: hr-system-postgres
     environment:
       POSTGRES_DB: hr_system_db
       POSTGRES_USER: hr_user
       POSTGRES_PASSWORD: hr_password
     ports:
-      - "5432:5432"
+      - "5434:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -15,18 +15,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
-
-  pgadmin:
-    image: dpage/pgadmin4:8
-    container_name: hr-system-pgadmin
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@hrsystem.local
-      PGADMIN_DEFAULT_PASSWORD: admin123
-    ports:
-      - "5050:80"
-    depends_on:
-      postgres:
-        condition: service_healthy
 
 volumes:
   pgdata:

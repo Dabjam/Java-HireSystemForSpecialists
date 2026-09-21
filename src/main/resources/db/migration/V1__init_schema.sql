@@ -1,17 +1,10 @@
--- V1: базовая схема HR-системы (ENUM, таблицы, FK, CHECK)
-
-CREATE TYPE user_role_enum AS ENUM ('CANDIDATE', 'EMPLOYER', 'ADMIN');
-CREATE TYPE source_type_enum AS ENUM ('WEBSITE', 'TELEGRAM', 'MANUAL');
-CREATE TYPE vacancy_status_enum AS ENUM ('ACTIVE', 'ARCHIVED', 'MODERATION', 'REJECTED');
-CREATE TYPE application_status_enum AS ENUM ('APPLIED', 'REVIEWING', 'OFFER', 'REJECTED', 'WITHDRAWN');
-CREATE TYPE currency_enum AS ENUM ('RUB', 'USD', 'EUR', 'KZT');
-CREATE TYPE employment_type_enum AS ENUM ('REMOTE', 'OFFICE', 'HYBRID', 'FLEXIBLE');
+-- V1: базовая схема HR-системы (таблицы, FK, CHECK)
 
 CREATE TABLE users (
     id BIGSERIAL PRIMARY KEY,
     email VARCHAR(255) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
-    role user_role_enum NOT NULL DEFAULT 'CANDIDATE',
+    role VARCHAR(50) NOT NULL DEFAULT 'CANDIDATE' CHECK (role IN ('CANDIDATE', 'EMPLOYER', 'ADMIN')),
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -42,7 +35,7 @@ CREATE TABLE employer_profiles (
 CREATE TABLE parsing_sources (
     id BIGSERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
-    source_type source_type_enum NOT NULL,
+    source_type VARCHAR(50) NOT NULL CHECK (source_type IN ('WEBSITE', 'TELEGRAM', 'MANUAL')),
     base_url VARCHAR(500) NOT NULL UNIQUE,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     last_scraped_at TIMESTAMP WITH TIME ZONE,
@@ -57,16 +50,16 @@ CREATE TABLE vacancies (
     company_name VARCHAR(255) NOT NULL,
     salary_min INTEGER CHECK (salary_min >= 0),
     salary_max INTEGER CHECK (salary_max >= salary_min OR salary_max IS NULL),
-    currency currency_enum NOT NULL DEFAULT 'RUB',
+    currency VARCHAR(10) NOT NULL DEFAULT 'RUB' CHECK (currency IN ('RUB', 'USD', 'EUR', 'KZT')),
     description TEXT NOT NULL,
     requirements_stack TEXT,
     location VARCHAR(100) DEFAULT 'Не указано',
-    employment_type employment_type_enum DEFAULT 'REMOTE',
-    source_type source_type_enum NOT NULL DEFAULT 'MANUAL',
+    employment_type VARCHAR(50) DEFAULT 'REMOTE' CHECK (employment_type IN ('REMOTE', 'OFFICE', 'HYBRID', 'FLEXIBLE')),
+    source_type VARCHAR(50) NOT NULL DEFAULT 'MANUAL' CHECK (source_type IN ('WEBSITE', 'TELEGRAM', 'MANUAL')),
     source_url VARCHAR(1000),
     content_hash VARCHAR(64) UNIQUE,
     is_parsed BOOLEAN NOT NULL DEFAULT FALSE,
-    status vacancy_status_enum NOT NULL DEFAULT 'ACTIVE',
+    status VARCHAR(50) NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE', 'ARCHIVED', 'MODERATION', 'REJECTED')),
     search_vector TSVECTOR,
     published_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -78,7 +71,7 @@ CREATE TABLE applications (
     vacancy_id BIGINT NOT NULL REFERENCES vacancies(id) ON DELETE CASCADE,
     candidate_id BIGINT NOT NULL REFERENCES candidate_profiles(id) ON DELETE CASCADE,
     cover_letter TEXT,
-    status application_status_enum NOT NULL DEFAULT 'APPLIED',
+    status VARCHAR(50) NOT NULL DEFAULT 'APPLIED' CHECK (status IN ('APPLIED', 'REVIEWING', 'OFFER', 'REJECTED', 'WITHDRAWN')),
     status_comment TEXT,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
