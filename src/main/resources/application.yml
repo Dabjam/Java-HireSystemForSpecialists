@@ -4,7 +4,7 @@ spring:
   main:
     banner-mode: console
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5434}/${DB_NAME:hr_system_db}?stringtype=unspecified
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5425}/${DB_NAME:hr_system_db}?stringtype=unspecified
     username: ${DB_USER:${DB_USERNAME:hr_user}}
     password: ${DB_PASSWORD:hr_password}
     driver-class-name: org.postgresql.Driver

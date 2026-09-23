@@ -7,7 +7,7 @@ services:
       POSTGRES_USER: hr_user
       POSTGRES_PASSWORD: hr_password
     ports:
-      - "5434:5432"
+      - "5425:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:

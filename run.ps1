@@ -10,7 +10,7 @@ if (!(Test-Path $javaExe)) {
     $javaExe = "java"
 }
 
-Write-Host "`n[1/2] Проверка базы данных PostgreSQL (Docker порт 5434)..." -ForegroundColor Yellow
+Write-Host "`n[1/2] Проверка базы данных PostgreSQL (Docker порт 5425)..." -ForegroundColor Yellow
 docker-compose up -d
 
 Write-Host "`n[2/2] Запуск приложения HR System..." -ForegroundColor Green
